@@ -11,12 +11,16 @@ public class ServerStr {
     BufferedReader inClient;
     DataOutputStream outClient;
 
+    public ServerStr () {
+        try { server = new ServerSocket(5500); }
+        catch (Exception  exc) { System.out.println(exc.getMessage()); }
+    }
+
     public Socket attendi() {
         try {
-            server = new ServerSocket(5500);
             System.out.println("listening on port 5500");
             client = server.accept();
-            server.close();
+            // server.close();
             inClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             outClient = new DataOutputStream(client.getOutputStream());
         } catch (Exception exc) { System.out.println(exc.getMessage()); }
