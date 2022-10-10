@@ -1,7 +1,7 @@
 package com.fi.meucci;
 import java.io.*;
 import java.net.*;
-import java.util.*;
+import java.util.ArrayList;
 
 public class ServerStr {
     ServerSocket server = null;
@@ -11,33 +11,47 @@ public class ServerStr {
     BufferedReader inClient;
     DataOutputStream outClient;
 
-    public ServerStr () {
-        try { server = new ServerSocket(5500); }
+    ArrayList<Socket> sockets = new ArrayList<>();
+    
+    public void avvia() {
+        try { 
+            server = new ServerSocket(5500);
+            while(true) {
+                System.out.println("listening to new clients on port 5500");
+                client = server.accept();
+                sockets.add(client);
+                Thread thread = new Thread(new Runnable() {
+                    @Override public void run() { comunica(); }
+                });
+                thread.start();
+            }
+        }
         catch (Exception  exc) { System.out.println(exc.getMessage()); }
     }
 
-    public Socket attendi() {
-        try {
-            System.out.println("listening on port 5500");
-            client = server.accept();
-            // server.close();
-            inClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            outClient = new DataOutputStream(client.getOutputStream());
-        } catch (Exception exc) { System.out.println(exc.getMessage()); }
-
-        return client;
-    }
-
     public void comunica() {
-        try {
-            stringaRicevuta = inClient.readLine();
-            System.out.println("line recieved");
-
-            stringaModificata = stringaRicevuta.toUpperCase();
-            System.out.println("sending modified string");
-            outClient.writeBytes(stringaModificata + '\n');
-            System.out.println("string has been sent");
-            client.close();
-        } catch(Exception exc) { System.out.println(exc.getMessage()); }
+            try {
+                System.out.println("connection with client started, listening to incoming messages");
+                inClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                outClient = new DataOutputStream(client.getOutputStream());
+                
+                while (true) {
+                    stringaRicevuta = inClient.readLine();
+                    if (stringaRicevuta == null || stringaRicevuta == "" || stringaRicevuta.equals("EXIT")) { break; }
+                    if (stringaRicevuta.equals("CLOSE")) { 
+                        for (Socket socket : sockets) { socket.close(); }
+                        server.close();
+                        System.exit(0);
+                     }
+                    System.out.println("line recieved");
+                    stringaModificata = stringaRicevuta.toUpperCase();
+                    System.out.println("sending modified string");
+                    outClient.writeBytes(stringaModificata + '\n');
+                    System.out.println("string has been sent");
+                }
+                outClient.close();
+                inClient.close();
+                client.close();
+            } catch(Exception exc) { System.out.println(exc.getMessage()); }
     }
 }

@@ -9,9 +9,6 @@ public class App
     public static void main( String[] args )
     {
         ServerStr server = new ServerStr();
-        while (true) {
-            server.attendi();
-            server.comunica();
-        }
+        server.avvia();
     }
 }
